@@ -1,0 +1,14 @@
+{
+    "name": "thedeathvm/breadcrumbs",
+    "description": "Phalcon PHP v5.8 breadcrumbs work with PHP > 8.0 author by sergeyklay/breadcrumbs",
+    "type": "library",
+    "require": {
+        "ext-phalcon": ">=2.0",
+        "php": ">= 5.5 <8.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Thedeathvm\\Breadcrumbs\\": "src/"
+        }
+    }
+}
