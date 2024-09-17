@@ -30,7 +30,7 @@ To use this component, you need at least:
 ### Installing
 
 ```sh
-$ composer require phalcon/breadcrumbs
+$ composer require thedeathvm/breadcrumbs
 ```
 
 ### Define your breadcrumbs
