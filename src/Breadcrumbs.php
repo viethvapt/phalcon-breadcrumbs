@@ -11,7 +11,9 @@
 
 namespace Phalcon;
 
-use Phalcon\Mvc\User\Component;
+use Phalcon\Di\Injectable;
+use Phalcon\Events\EventsAwareInterface;
+use Phalcon\Events\ManagerInterface;
 use Phalcon\Breadcrumbs\Exception\InvalidArgumentException;
 use Phalcon\Breadcrumbs\Exception\OutOfBoundsException;
 use Phalcon\Breadcrumbs\Exception\UnderflowException;
@@ -23,7 +25,7 @@ use Phalcon\Breadcrumbs\Exception\UnderflowException;
  *
  * @package Phalcon
  */
-class Breadcrumbs extends Component
+class Breadcrumbs extends Injectable implements EventsAwareInterface
 {
     /**
      * Keeps all the breadcrumbs
@@ -78,23 +80,49 @@ class Breadcrumbs extends Component
     protected $countNull = 0;
 
     /**
+     * @var 
+     */
+    protected $eventsManager;
+
+    /**
      * Breadcrumbs constructor.
      */
     public function __construct()
     {
-        if ($this->getDI()->has('logger')) {
+        if ($this->getDI()->has('logger'))
+        {
             $logger = $this->getDI()->getShared('logger');
-            if ($logger instanceof Logger\AdapterInterface) {
+            if ($logger instanceof Logger\AdapterInterface)
+            {
                 $this->logger = $logger;
             }
         }
 
-        if ($this->getDI()->has('translate')) {
+        if ($this->getDI()->has('translate'))
+        {
             $translate = $this->getDI()->getShared('translate');
-            if ($translate instanceof Translate\AdapterInterface) {
+            if ($translate instanceof Translate\AdapterInterface)
+            {
                 $this->translate = $translate;
             }
         }
+    }
+
+    /**
+     * @return ManagerInterface|null
+     */
+    public function getEventsManager(): ManagerInterface|null
+    {
+        return $this->eventsManager;
+    }
+
+    /**
+     * @param ManagerInterface $eventsManager
+     * @return void
+     */
+    public function setEventsManager(ManagerInterface $eventsManager): void
+    {
+        $this->eventsManager = $eventsManager;
     }
 
     /**
@@ -166,8 +194,10 @@ class Breadcrumbs extends Component
      */
     public function setSeparator($separator)
     {
-        try {
-            if (!is_string($separator)) {
+        try
+        {
+            if (!is_string($separator))
+            {
                 $type = gettype($separator);
                 throw new InvalidArgumentException(
                     "Expected value of the separator to be string type, {$type} given."
@@ -175,7 +205,9 @@ class Breadcrumbs extends Component
             }
 
             $this->separator = $separator;
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e)
+        {
             $this->log($e);
         }
 
@@ -226,24 +258,29 @@ class Breadcrumbs extends Component
     public function setTemplate($linked, $notLinked, $icon)
     {
         $eventsManager = $this->getEventsManager();
-        if ($eventsManager) {
+        if ($eventsManager)
+        {
             $eventsManager->fire('breadcrumbs:beforeSetTemplate', $this, [$linked, $notLinked, $icon]);
         }
 
-        try {
-            if (!is_string($linked)) {
+        try
+        {
+            if (!is_string($linked))
+            {
                 $type = gettype($linked);
                 throw new InvalidArgumentException("Expected value of the first argument to be string, {$type} given.");
             }
 
-            if (!is_string($notLinked)) {
+            if (!is_string($notLinked))
+            {
                 $type = gettype($notLinked);
                 throw new InvalidArgumentException(
                     "Expected value of the second argument to be string, {$type} given."
                 );
             }
 
-            if (!is_string($icon)) {
+            if (!is_string($icon))
+            {
                 $type = gettype($notLinked);
                 throw new InvalidArgumentException("Expected value of the third argument to be string, {$type} given.");
             }
@@ -254,10 +291,13 @@ class Breadcrumbs extends Component
                 'icon'       => $icon
             ];
 
-            if ($eventsManager) {
+            if ($eventsManager)
+            {
                 $eventsManager->fire('breadcrumbs:afterSetTemplate', $this, [$linked, $notLinked, $icon]);
             }
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e)
+        {
             $this->log($e);
         }
 
@@ -296,19 +336,23 @@ class Breadcrumbs extends Component
     public function add($label, $link = null, array $data = [])
     {
         $eventsManager = $this->getEventsManager();
-        if ($eventsManager) {
+        if ($eventsManager)
+        {
             $eventsManager->fire('breadcrumbs:beforeAdd', $this, [$label, $link, $data]);
         }
 
-        try {
-            if (!is_string($link) && !is_null($link)) {
+        try
+        {
+            if (!is_string($link) && !is_null($link))
+            {
                 $type = gettype($link);
                 throw new InvalidArgumentException(
                     "Expected value of the second argument to be either string or null type, {$type} given."
                 );
             }
 
-            if (!is_string($label)) {
+            if (!is_string($label))
+            {
                 $type = gettype($label);
                 throw new InvalidArgumentException(
                     "Expected value of the third argument to be string type, {$type} given."
@@ -316,13 +360,15 @@ class Breadcrumbs extends Component
             }
 
             $linked = true;
-            if (isset($data['linked'])) {
+            if (isset($data['linked']))
+            {
                 $linked = (bool) $data['linked'];
             }
 
             $id = $link;
-            if (is_null($id)) {
-                $id = ':null'.$this->countNull.':';
+            if (is_null($id))
+            {
+                $id = ':null' . $this->countNull . ':';
                 $this->countNull++;
             }
 
@@ -331,11 +377,14 @@ class Breadcrumbs extends Component
                 'link'   => (string) $link,
                 'linked' => $linked,
             ];
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e)
+        {
             $this->log($e);
         }
 
-        if ($eventsManager) {
+        if ($eventsManager)
+        {
             $eventsManager->fire('breadcrumbs:afterAdd', $this, [$label, $link, $data]);
         }
 
@@ -364,17 +413,23 @@ class Breadcrumbs extends Component
     public function output()
     {
         $eventsManager = $this->getEventsManager();
-        if ($eventsManager) {
+        if ($eventsManager)
+        {
             $eventsManager->fire('breadcrumbs:beforeOutput', $this);
         }
 
-        if (empty($this->elements)) {
-            if (true === $this->implicitFlush) {
+        if (empty($this->elements))
+        {
+            if (true === $this->implicitFlush)
+            {
                 echo '';
-                if ($eventsManager) {
+                if ($eventsManager)
+                {
                     $eventsManager->fire('breadcrumbs:afterOutput', $this);
                 }
-            } else {
+            }
+            else
+            {
                 return '';
             }
         }
@@ -383,55 +438,72 @@ class Breadcrumbs extends Component
         $content = '';
 
         $i = 0;
-        foreach ($this->elements as $key => $crumb) {
+        foreach ($this->elements as $key => $crumb)
+        {
             $i++;
             $label = $crumb['label'];
-            if ($this->translate) {
-                if ($eventsManager) {
+            if ($this->translate)
+            {
+                if ($eventsManager)
+                {
                     $eventsManager->fire('breadcrumbs:beforeTranslate', $this);
                 }
 
                 $label = $this->translate->query($label);
 
-                if ($eventsManager) {
+                if ($eventsManager)
+                {
                     $eventsManager->fire('breadcrumbs:afterTranslate', $this);
                 }
             }
 
-            if (true === $this->lastNotLinked && end($this->elements) == $crumb) {
+            if (true === $this->lastNotLinked && end($this->elements) == $crumb)
+            {
                 $crumb['linked'] = null;
             }
 
-            if ($crumb['linked']) {
+            if ($crumb['linked'])
+            {
                 $htmlCrumb = str_replace(
                     ['{{link}}', '{{label}}'],
                     [$crumb['link'], $label],
                     $this->template['linked']
                 );
-            } else {
+            }
+            else
+            {
                 $htmlCrumb = str_replace('{{label}}', $label, $this->template['not-linked']);
             }
 
-            if (1 == $i) {
+            if (1 == $i)
+            {
                 $htmlCrumb = str_replace('{{icon}}', $this->template['icon'], $htmlCrumb);
-            } else {
+            }
+            else
+            {
                 $htmlCrumb = str_replace('{{icon}}', '', $htmlCrumb);
             }
 
             $this->remove($key);
             $htmlCrumb .= (!empty($this->elements) ? $this->separator : '');
 
-            if (true === $this->implicitFlush) {
+            if (true === $this->implicitFlush)
+            {
                 echo $htmlCrumb;
-            } else {
+            }
+            else
+            {
                 $content .= $htmlCrumb;
             }
         }
 
         // We return the breadcrumbs as string if the implicitFlush is turned off
-        if (false === $this->implicitFlush) {
+        if (false === $this->implicitFlush)
+        {
             return $content;
-        } elseif ($eventsManager) {
+        }
+        elseif ($eventsManager)
+        {
             $eventsManager->fire('breadcrumbs:afterOutput', $this);
         }
     }
@@ -466,34 +538,43 @@ class Breadcrumbs extends Component
     public function remove($link)
     {
         $eventsManager = $this->getEventsManager();
-        if ($eventsManager) {
+        if ($eventsManager)
+        {
             $eventsManager->fire('breadcrumbs:beforeRemove', $this, [$link]);
         }
 
-        try {
-            if (empty($this->elements)) {
+        try
+        {
+            if (empty($this->elements))
+            {
                 throw new UnderflowException('Cannot remove crumb from an empty list.');
             }
 
-            if (!is_string($link) && !is_null($link)) {
+            if (!is_string($link) && !is_null($link))
+            {
                 $type = gettype($link);
                 throw new InvalidArgumentException(
                     "Expected value of the first argument to be either string or null type, {$type} given."
                 );
             }
 
-            if (is_null($link)) {
+            if (is_null($link))
+            {
                 $link = ':null:';
             }
 
-            if (!empty($this->elements) && array_key_exists($link, $this->elements)) {
+            if (!empty($this->elements) && array_key_exists($link, $this->elements))
+            {
                 unset($this->elements[$link]);
             }
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e)
+        {
             $this->log($e);
         }
 
-        if ($eventsManager) {
+        if ($eventsManager)
+        {
             $eventsManager->fire('breadcrumbs:afterRemove', $this, [$link]);
         }
 
@@ -518,30 +599,37 @@ class Breadcrumbs extends Component
     public function update($url, array $data)
     {
         $id = $url;
-        try {
-            if (empty($this->elements)) {
+        try
+        {
+            if (empty($this->elements))
+            {
                 throw new UnderflowException('Cannot update on an empty breadcrumbs list.');
             }
 
-            if (!is_string($id) && !is_null($id)) {
+            if (!is_string($id) && !is_null($id))
+            {
                 $type = gettype($id);
                 throw new InvalidArgumentException(
                     "Expected value of the second argument to be either string or null type, {$type} given."
                 );
             }
 
-            if (is_null($url)) {
+            if (is_null($url))
+            {
                 $id = ':null:';
             }
 
-            if (!array_key_exists($id, $this->elements)) {
+            if (!array_key_exists($id, $this->elements))
+            {
                 throw new OutOfBoundsException(
                     sprintf("No such url '%s' in breadcrumbs list", is_null($url) ? 'null' : $id)
                 );
             }
 
             $this->elements[$id] = array_merge($this->elements[$id], $data);
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e)
+        {
             $this->log($e);
         }
 
@@ -560,17 +648,22 @@ class Breadcrumbs extends Component
     protected function log(\Exception $e)
     {
         $eventsManager = $this->getEventsManager();
-        if ($eventsManager) {
+        if ($eventsManager)
+        {
             $eventsManager->fire('breadcrumbs:beforeLogging', $this, [$e]);
         }
 
-        if ($this->logger) {
+        if ($this->logger)
+        {
             $this->logger->error($e->getMessage());
-        } else {
+        }
+        else
+        {
             error_log($e->getMessage());
         }
 
-        if ($eventsManager) {
+        if ($eventsManager)
+        {
             $eventsManager->fire('breadcrumbs:afterLogging', $this, [$e]);
         }
     }

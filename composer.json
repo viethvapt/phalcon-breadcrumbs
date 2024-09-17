@@ -8,7 +8,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Thedeathvm\\Breadcrumbs\\": "src/"
+            "Phalcon\\": "src/"
         }
     }
 }
